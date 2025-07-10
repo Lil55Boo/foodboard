@@ -10,19 +10,19 @@ class RecipeController extends Controller
     // Affiche toutes les recettes
     public function index(Request $request)
     {
-        $ingredientName = $request->query('ingredient');
-    
-        if ($ingredientName) {
-            // Si un ingrédient est spécifié dans l'URL, on filtre les recettes qui le contiennent
-            $recipes = Recipe::whereHas('ingredients', function ($query) use ($ingredientName) {
-                $query->where('name', $ingredientName);
-            })->get();
-        } else {
-            // Sinon, on retourne toutes les recettes
-            $recipes = Recipe::all();
-        }
-    
-        return response()->json($recipes);
+    $ingredientName = $request->query('ingredient');
+
+    if ($ingredientName) {
+        // Si un ingrédient est spécifié, on filtre les recettes qui le contiennent
+        $recipes = Recipe::whereHas('ingredients', function ($query) use ($ingredientName) {
+            $query->where('name', $ingredientName);
+        })->with('ingredients')->get(); // <-- ajout ici
+    } else {
+        // Sinon, on retourne toutes les recettes avec leurs ingrédients
+        $recipes = Recipe::with('ingredients')->get(); // <-- ajout ici
+    }
+
+    return response()->json($recipes);
     }
 
     // Affiche une recette spécifique
@@ -44,13 +44,26 @@ class RecipeController extends Controller
     $validated = $request->validate([
         'title' => 'required|max:255',
         'description' => 'nullable|string',
+        'ingredients' => 'array'  // On autorise un tableau d’ingrédients
     ]);
 
-    $recipe = Recipe::create($validated);
+    $recipe = Recipe::create([
+        'title' => $validated['title'],
+        'description' => $validated['description'] ?? null,
+    ]);
+
+    if (!empty($validated['ingredients'])) {
+        $ingredientIds = [];
+        foreach ($validated['ingredients'] as $ingredientName) {
+            $ingredient = \App\Models\Ingredient::firstOrCreate(['name' => $ingredientName]);
+            $ingredientIds[] = $ingredient->id;
+        }
+        $recipe->ingredients()->sync($ingredientIds);
+    }
 
     return response()->json([
         'message' => 'Recette créée avec succès !',
-        'recipe' => $recipe
+        'recipe' => $recipe->load('ingredients')  // On renvoie la recette avec ingrédients liés
     ], 201);
     }
 
@@ -61,13 +74,37 @@ class RecipeController extends Controller
     $validated = $request->validate([
         'title' => 'required|max:255',
         'description' => 'nullable|string',
+        'ingredients' => 'array'  // Autorise un tableau d’ingrédients
     ]);
 
-    $recipe->update($validated);
+    $recipe->update([
+        'title' => $validated['title'],
+        'description' => $validated['description'] ?? null,
+    ]);
+
+    if (isset($validated['ingredients'])) {
+        $ingredientIds = [];
+        foreach ($validated['ingredients'] as $ingredientName) {
+            $ingredient = \App\Models\Ingredient::firstOrCreate(['name' => $ingredientName]);
+            $ingredientIds[] = $ingredient->id;
+        }
+        $recipe->ingredients()->sync($ingredientIds);
+    }
 
     return response()->json([
         'message' => 'Recette mise à jour avec succès !',
-        'recipe' => $recipe
+        'recipe' => $recipe->load('ingredients')
+    ]);
+    }
+
+    public function destroy($id)
+    {
+    $recipe = Recipe::findOrFail($id);  // Trouve la recette ou lance une 404 si pas trouvée
+
+    $recipe->delete();  // Supprime la recette
+
+    return response()->json([
+        'message' => 'Recette supprimée avec succès !'
     ]);
     }
 }
