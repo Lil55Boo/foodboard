@@ -3,7 +3,8 @@
     <i class="bx bx-search"></i>
     <input
       type="text"
-      v-model="searchQuery"
+      :value="modelValue"
+      @input="$emit('update:modelValue', $event.target.value)"
       placeholder="Rechercher par ingrédient ou nom de recette..."
       class="search-input"
     />
@@ -13,12 +14,10 @@
 <script>
 export default {
   name: "Search",
-  data() {
-    return {
-      searchQuery: "", // correction ici
-    };
-  },
-};
+  props: {
+    modelValue: String
+  }
+}
 </script>
 
 <style scoped>
@@ -27,7 +26,6 @@ export default {
   max-width: 500px;
   margin: 20px auto;
 }
-
 .search-input {
   width: 100%;
   padding: 12px 16px 12px 40px;
@@ -38,7 +36,6 @@ export default {
   font-size: 16px;
   outline: none;
 }
-
 i.bx {
   position: absolute;
   top: 50%;
