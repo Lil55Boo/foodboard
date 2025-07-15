@@ -1,52 +1,39 @@
-# Étape 1 : base PHP
+# Étape 1 : Build frontend avec Node 20
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app
+
+COPY foodboard-front/package*.json ./
+RUN npm install
+
+COPY foodboard-front/ ./
+RUN npm run build
+
+# Étape 2 : Backend PHP Laravel
 FROM php:8.2-fpm
 
-# Définir le dossier de travail
-WORKDIR /var/www
-
-# Installer dépendances système nécessaires
+# Installer dépendances système
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    zip \
-    unzip \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    npm \
-    nodejs \
+    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
     && docker-php-ext-install pdo mbstring zip exif pcntl
 
-# Installer Composer
+# Installer composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copier tout le projet
-COPY . .
-
-# Installer les dépendances PHP Laravel
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-
-# ----------------------
-# Étape 2 : build du frontend (dans ./foodboard-front)
-# ----------------------
-WORKDIR /var/www/foodboard-front
-
-RUN npm install && npm run build
-
-# Copier le build frontend dans le dossier public/ de Laravel
-RUN cp -r dist/* ../public/
-
-# ----------------------
-# Étape 3 : revenir dans Laravel pour démarrer l'app
-# ----------------------
 WORKDIR /var/www
 
-# Fixer les permissions
+# Copier backend Laravel
+COPY . .
+
+# Installer dépendances PHP Laravel
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Copier build frontend dans dossier public/
+COPY --from=frontend-build /app/dist /var/www/public
+
+# Permissions
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 
-# Exposer le port
 EXPOSE 8000
 
-# Commande de démarrage (Render détecte ce port)
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
