@@ -1,25 +1,52 @@
-# Étape 1 : image PHP avec Composer et Node
-FROM php:8.2-fpm-alpine
-# Installer les dépendances système
+# Étape 1 : base PHP
+FROM php:8.2-fpm
+
+# Définir le dossier de travail
+WORKDIR /var/www
+
+# Installer dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libzip-dev \
-    libpng-dev libonig-dev libxml2-dev \
-    npm nodejs \
+    git \
+    curl \
+    zip \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    npm \
+    nodejs \
     && docker-php-ext-install pdo mbstring zip exif pcntl
 
 # Installer Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copier les fichiers Laravel
-WORKDIR /var/www
+# Copier tout le projet
 COPY . .
 
-# Installer les dépendances PHP et Node + build du front
-RUN composer install --no-dev --optimize-autoloader
+# Installer les dépendances PHP Laravel
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# ----------------------
+# Étape 2 : build du frontend (dans ./foodboard-front)
+# ----------------------
+WORKDIR /var/www/foodboard-front
+
 RUN npm install && npm run build
 
-# Donner les bons droits
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Copier le build frontend dans le dossier public/ de Laravel
+RUN cp -r dist/* ../public/
 
-# Lancer Laravel en mode serveur (sur le port de Render)
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# ----------------------
+# Étape 3 : revenir dans Laravel pour démarrer l'app
+# ----------------------
+WORKDIR /var/www
+
+# Fixer les permissions
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+
+# Exposer le port
+EXPOSE 8000
+
+# Commande de démarrage (Render détecte ce port)
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
