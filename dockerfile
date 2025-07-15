@@ -1,30 +1,40 @@
-# Étape 1 : build frontend avec Node 20 (version alpine légère)
-FROM node:20-alpine as frontend-build
+# Étape 1 : Build frontend avec Node 20
+FROM node:20-alpine AS frontend-build
 
 WORKDIR /app
 
 COPY foodboard-front/package*.json ./
 RUN npm install
 
-COPY foodboard-front/ .
+COPY foodboard-front/ ./
 RUN npm run build
 
-# Étape 2 : backend Laravel (PHP 8.2-fpm)
+# Étape 2 : Backend PHP Laravel
 FROM php:8.2-fpm
 
-# Installer dépendances PHP nécessaires (pdo, mbstring, zip, ...)
+# Installer dépendances système
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo mbstring zip exif pcntl
+git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+&& docker-php-ext-install pdo mbstring zip exif pcntl
 
-# Copier l'app Laravel
+# Installer composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+
 WORKDIR /var/www
 
+# Copier backend Laravel
 COPY . .
 
-# Copier le build frontend dans public/
-COPY --from=frontend-build /app/dist ./public
+# Installer dépendances PHP Laravel
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Configurer permissions, etc. si besoin
+# Copier build frontend dans dossier public/
+COPY --from=frontend-build /app/dist /var/www/public
 
-CMD ["php-fpm"]
+# Permissions
+RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+EXPOSE 8000
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
