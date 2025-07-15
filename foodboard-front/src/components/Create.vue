@@ -1,28 +1,45 @@
 <template>
-  <div v-if="visible" class="modal-overlay" @click.self="close">
-    <div class="modal-content">
-      <button class="close-btn" @click="close">×</button>
-      <h2>Créer une nouvelle recette</h2>
-      <form @submit.prevent="handleFormSubmit">
-        <label>
-          Titre *
-          <input v-model="title" type="text" required />
-        </label>
+  <v-dialog v-model="internalVisible" persistent max-width="500">
+    <v-card>
+      <v-card-title class="d-flex justify-space-between align-center">
+        <span class="text-h6">Créer une nouvelle recette</span>
+        <v-btn icon @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-card-title>
 
-        <label>
-          Description
-          <textarea v-model="description" rows="4"></textarea>
-        </label>
+      <v-card-text>
+        <v-form @submit.prevent="handleFormSubmit" ref="formRef">
+          <v-text-field
+            v-model="title"
+            label="Titre *"
+            required
+          ></v-text-field>
 
-        <label>
-          Ingrédients (séparés par des virgules)
-          <input v-model="ingredients" type="text" />
-        </label>
+          <v-textarea
+            v-model="description"
+            label="Description"
+            rows="3"
+          ></v-textarea>
 
-        <button type="submit" class="submit-btn">Créer</button>
-      </form>
-    </div>
-  </div>
+          <v-text-field
+            v-model="ingredients"
+            label="Ingrédients (séparés par des virgules)"
+          ></v-text-field>
+        </v-form>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-btn
+          color="primary"
+          block
+          @click="handleFormSubmit"
+        >
+          Créer
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -35,8 +52,17 @@ export default {
     return {
       title: "",
       description: "",
-      ingredients: ""
+      ingredients: "",
+      internalVisible: false,
     };
+  },
+  watch: {
+    visible(val) {
+      this.internalVisible = val;
+    },
+    internalVisible(val) {
+      if (!val) this.close();
+    },
   },
   methods: {
     close() {
@@ -59,84 +85,19 @@ export default {
         description: this.description.trim(),
         ingredients: this.ingredients
           .split(",")
-          .map(i => i.trim())
-          .filter(i => i.length > 0),
+          .map((i) => i.trim())
+          .filter((i) => i.length > 0),
       };
 
       this.$emit("create", payload);
       this.close();
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
-/* styles identiques à avant (modal, inputs, etc.) */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 400px;
-  position: relative;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 25px;
-  cursor: pointer;
-}
-
-form label {
-  display: block;
-  margin-bottom: 15px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-input[type="text"],
-textarea {
-  width: 100%;
-  padding: 8px 10px;
-  margin-top: 5px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.submit-btn {
-  background: linear-gradient(to right, #3B82F6, #06b6d4);
-  border: none;
-  padding: 12px 20px;
-  color: white;
-  font-weight: 700;
-  font-size: 15px;
-  border-radius: 25px;
-  cursor: pointer;
-  width: 100%;
-  transition: transform 0.2s ease;
-}
-
-.submit-btn:hover {
-  transform: scale(1.05);
+.v-card-title {
+  padding-bottom: 0;
 }
 </style>

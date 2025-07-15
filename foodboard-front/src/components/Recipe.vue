@@ -1,23 +1,43 @@
 <template>
-  <div class="recipe-container">
+  <v-container class="py-6">
     <Empty v-if="recipes.length === 0" />
 
-    <div v-else class="recipe-grid">
-      <div v-for="recipe in recipes" :key="recipe.id" class="recipe-card">
-        <h3>{{ recipe.title }}</h3>
-        <p>{{ recipe.description }}</p>
-        <ul>
-          <li v-for="ingredient in recipe.ingredients" :key="ingredient.id || ingredient.name">
-            {{ ingredient.name || ingredient }}
-          </li>
-        </ul>
-
-        <div class="actions">
-          <button @click="$emit('edit', recipe)">✏️ Modifier</button>
-          <button @click="$emit('delete', recipe)">🗑️ Supprimer</button>
-        </div>
-      </div>
-    </div>
+    <v-row v-else dense>
+      <v-col
+        v-for="recipe in recipes"
+        :key="recipe.id"
+        cols="12"
+        sm="6"
+        md="4"
+      >
+        <v-card class="pa-4" elevation="4">
+          <v-card-title class="text-h6">{{ recipe.title }}</v-card-title>
+          <v-card-text>
+            <p class="mb-2">{{ recipe.description }}</p>
+            <v-list dense>
+              <v-list-item
+                v-for="ingredient in recipe.ingredients"
+                :key="ingredient.id || ingredient.name"
+              >
+                <v-list-item-content>
+                  <v-list-item-title class="text-subtitle-2">
+                    {{ ingredient.name || ingredient }}
+                  </v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" @click="$emit('edit', recipe)" variant="text">
+              ✏️ Modifier
+            </v-btn>
+            <v-btn color="error" @click="$emit('delete', recipe)" variant="text">
+              🗑️ Supprimer
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- Popup Création -->
     <Create
@@ -33,11 +53,11 @@
       @close="closeEditPopup"
       @update="handleUpdate"
     />
-  </div>
+  </v-container>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import Empty from './Empty.vue'
 import Create from './Create.vue'
 import Edit from './Edit.vue'
@@ -55,25 +75,18 @@ const isCreateOpen = ref(false)
 const isEditOpen = ref(false)
 const selectedRecipe = ref(null)
 
-// Écoute des événements venant de l'extérieur (App.vue) pour ouvrir les modals
-watch(() => props.recipes, () => {
-  // Rien à faire ici, recettes mises à jour par le parent
-})
-
-// Fonction pour ouvrir la popup création (appelée par App.vue)
+// Ouverture / fermeture modales
 function openCreate() {
   isCreateOpen.value = true
 }
 
-// Fonction pour ouvrir la popup édition (appelée par App.vue)
+function closeCreatePopup() {
+  isCreateOpen.value = false
+}
+
 function openEdit(recipe) {
   selectedRecipe.value = recipe
   isEditOpen.value = true
-}
-
-// Fermeture popups
-function closeCreatePopup() {
-  isCreateOpen.value = false
 }
 
 function closeEditPopup() {
@@ -81,13 +94,12 @@ function closeEditPopup() {
   selectedRecipe.value = null
 }
 
-// Gestion création (émission vers App.vue)
+// Gestion des envois
 function handleCreate(recipeData) {
   emit('create', recipeData)
   closeCreatePopup()
 }
 
-// Gestion modification (émission vers App.vue)
 function handleUpdate(recipeData) {
   emit('update', recipeData)
   closeEditPopup()
@@ -95,44 +107,5 @@ function handleUpdate(recipeData) {
 </script>
 
 <style scoped>
-.recipe-container {
-  padding: 20px;
-}
-
-.recipe-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.recipe-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
-}
-
-.recipe-card h3 {
-  margin: 0 0 10px;
-}
-
-.recipe-card ul {
-  padding-left: 20px;
-  margin: 0;
-  list-style-type: disc;
-}
-
-.recipe-card ul li {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.actions {
-  margin-top: 10px;
-}
-
-.actions button {
-  margin-right: 8px;
-  cursor: pointer;
-}
+/* plus besoin de grid CSS manuelle : Vuetify gère ça avec <v-row> et <v-col> */
 </style>
