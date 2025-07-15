@@ -1,12 +1,12 @@
 <template>
-  <button class="floating-btn" aria-label="Créer une nouvelle recette" @click="$emit('open-create')">
+  <button class="floating-btn" @click="$emit('open-create')" aria-label="Créer une nouvelle recette">
     <i class="bx bx-plus"></i>
   </button>
 </template>
 
 <script>
 export default {
-  name: 'FloatingButton',
+  name: "FloatingButton",
 };
 </script>
 

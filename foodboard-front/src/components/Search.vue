@@ -1,23 +1,36 @@
 <template>
-    <div class="search-container">
-        <i class='bx bx-search'></i>
-        <input type="text" v-model="searchQuery" placeholder="Rechercher par ingrédient ou nom de recette..." class="search-input" />
-    </div>
+  <div class="search-container">
+    <i class="bx bx-search"></i>
+    <input
+      type="text"
+      v-model="searchQuery"
+      placeholder="Rechercher par ingrédient ou nom de recette..."
+      class="search-input"
+    />
+  </div>
 </template>
-    
+
 <script>
+export default {
+  name: "Search",
+  data() {
+    return {
+      searchQuery: "", // correction ici
+    };
+  },
+};
 </script>
-    
+
 <style scoped>
 .search-container {
-  position: relative;             /* important pour positionner l’icône */
+  position: relative;
   max-width: 500px;
   margin: 20px auto;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 16px 12px 40px;   /* padding à gauche pour laisser la place à l’icône */
+  padding: 12px 16px 12px 40px;
   border-radius: 25px;
   border: none;
   background-color: white;
@@ -32,6 +45,6 @@ i.bx {
   left: 14px;
   transform: translateY(-50%);
   font-size: 20px;
-  color: #6A7280;
+  color: #6a7280;
 }
 </style>

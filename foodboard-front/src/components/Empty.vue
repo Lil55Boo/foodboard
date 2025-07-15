@@ -1,7 +1,7 @@
 <template>
   <div class="empty-state-container">
     <div class="circle">
-      <i class='bx bx-knife'></i>
+      <i class="bx bx-knife"></i>
     </div>
     <h2>Aucune recette pour le moment</h2>
     <p>Commencez à construire votre collection de recettes en ajoutant votre première création culinaire.</p>
@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: 'EmptyState',
+  name: "EmptyState",
 };
 </script>
 
@@ -34,11 +34,11 @@ export default {
   height: 120px;
   border-radius: 50%;
   background: linear-gradient(to right, #5737EF, #D9C1FF);
+  display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
   margin-bottom: 20px;
-  display: flex;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
 }
 
 .bx-knife {
