@@ -1,6 +1,5 @@
 # Étape 1 : image PHP avec Composer et Node
-FROM php:8.2-fpm
-
+FROM php:8.2-fpm-alpine
 # Installer les dépendances système
 RUN apt-get update && apt-get install -y \
     git curl zip unzip libzip-dev \
