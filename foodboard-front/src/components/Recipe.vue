@@ -10,43 +10,64 @@
         sm="6"
         md="4"
       >
-        <v-card class="pa-4" elevation="4">
-          <v-card-title class="text-h6">{{ recipe.title }}</v-card-title>
-          <v-card-text>
-            <p class="mb-2">{{ recipe.description }}</p>
-            <v-list dense>
-              <v-list-item
-                v-for="ingredient in recipe.ingredients"
-                :key="ingredient.id || ingredient.name"
+        <v-card
+          class="d-flex flex-column fill-height pa-4"
+          flat
+          color="white"
+        >
+          <!-- Titre + Actions -->
+          <div class="d-flex justify-space-between align-center mb-2">
+            <v-card-title class="text-h6 pa-0">{{ recipe.title }}</v-card-title>
+            <div>
+              <v-icon
+                class="mr-2"
+                color="primary"
+                size="20"
+                @click="$emit('edit', recipe)"
+                title="Modifier"
               >
-                <v-list-item-content>
-                  <v-list-item-title class="text-subtitle-2">
-                    {{ ingredient.name || ingredient }}
-                  </v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
+                mdi-pencil
+              </v-icon>
+              <v-icon
+                color="error"
+                size="20"
+                @click="$emit('delete', recipe)"
+                title="Supprimer"
+              >
+                mdi-delete
+              </v-icon>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <v-card-text class="truncate-description">
+            {{ recipe.description }}
           </v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" @click="$emit('edit', recipe)" variant="text">
-              ✏️ Modifier
-            </v-btn>
-            <v-btn color="error" @click="$emit('delete', recipe)" variant="text">
-              🗑️ Supprimer
-            </v-btn>
-          </v-card-actions>
+
+          <!-- Ingrédients -->
+          <div class="ingredient-scroll mt-auto pt-3">
+            <v-chip
+              v-for="(ingredient, index) in recipe.ingredients"
+              :key="ingredient.id || ingredient.name || index"
+              class="ma-1"
+              :color="getColor(index)"
+              text-color="white"
+              label
+              small
+            >
+              {{ ingredient.name || ingredient }}
+            </v-chip>
+          </div>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Popup Création -->
+    <!-- Modals -->
     <Create
       :visible="isCreateOpen"
       @close="closeCreatePopup"
       @create="handleCreate"
     />
-
-    <!-- Popup Édition -->
     <Edit
       :visible="isEditOpen"
       :recipe="selectedRecipe"
@@ -75,37 +96,78 @@ const isCreateOpen = ref(false)
 const isEditOpen = ref(false)
 const selectedRecipe = ref(null)
 
-// Ouverture / fermeture modales
 function openCreate() {
   isCreateOpen.value = true
 }
-
 function closeCreatePopup() {
   isCreateOpen.value = false
 }
-
 function openEdit(recipe) {
   selectedRecipe.value = recipe
   isEditOpen.value = true
 }
-
 function closeEditPopup() {
   isEditOpen.value = false
   selectedRecipe.value = null
 }
-
-// Gestion des envois
 function handleCreate(recipeData) {
   emit('create', recipeData)
   closeCreatePopup()
 }
-
 function handleUpdate(recipeData) {
   emit('update', recipeData)
   closeEditPopup()
 }
+
+// 🎨 Couleurs variées pour chips
+const chipColors = [
+  'deep-purple accent-4',
+  'cyan darken-2',
+  'indigo',
+  'green darken-2',
+  'red darken-1',
+  'pink lighten-1',
+  'teal darken-3',
+  'orange darken-1',
+  'blue-grey darken-1'
+]
+
+function getColor(index) {
+  return chipColors[index % chipColors.length]
+}
 </script>
 
 <style scoped>
-/* plus besoin de grid CSS manuelle : Vuetify gère ça avec <v-row> et <v-col> */
+.truncate-description {
+  max-height: 60px;
+  overflow: hidden;
+  display: -webkit-box;
+  display: box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+  text-overflow: ellipsis;
+  white-space: normal;
+  font-size: 14px;
+  color: #444;
+}
+
+.ingredient-scroll {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap; /* empêche le retour à la ligne */
+  gap: 8px;
+  padding-bottom: 4px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+
+.ingredient-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.ingredient-scroll .v-chip {
+  flex-shrink: 0; /* empêche les chips de se compresser */
+}
 </style>

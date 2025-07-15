@@ -40,4 +40,4 @@ export default {
   max-width: 500px;
   width: 100%;
 }
-</style>r
+</style>
