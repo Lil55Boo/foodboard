@@ -47,7 +47,7 @@ import Create from './components/Create.vue'
 import Edit from './components/Edit.vue'
 
 // ✅ Base API URL depuis .env
-const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const baseUrl = 'https://foodboard.onrender.com'
 
 // États globaux
 const recipes = ref([])
