@@ -2,16 +2,13 @@
   <div id="app">
     <Header />
 
-    <!-- Barre de recherche -->
     <Search v-model="searchQuery" />
 
-    <!-- Si aucune recette, afficher un message vide -->
     <Empty
       v-if="filteredRecipes.length === 0"
       @open-create="openCreateModal"
     />
 
-    <!-- Sinon afficher la grille de recettes -->
     <Recipe
       v-else
       :recipes="filteredRecipes"
@@ -19,17 +16,14 @@
       @delete="handleDelete"
     />
 
-    <!-- Bouton flottant en bas à droite -->
     <Button @open-create="openCreateModal" />
 
-    <!-- Modal de création -->
-    <Create  
+    <Create
       :visible="isCreateOpen"
       @close="closeCreateModal"
       @create="handleCreate"
     />
 
-    <!-- Modal de modification -->
     <Edit
       :visible="isEditOpen"
       :recipe="selectedRecipe"
@@ -51,6 +45,9 @@ import Button from './components/Button.vue'
 import Recipe from './components/Recipe.vue'
 import Create from './components/Create.vue'
 import Edit from './components/Edit.vue'
+
+// ✅ Base API URL depuis .env
+const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // États globaux
 const recipes = ref([])
@@ -90,10 +87,10 @@ function closeEditModal() {
   selectedRecipe.value = null
 }
 
-// Charger les recettes
+// 🔁 Charger les recettes
 async function fetchRecipes() {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/recipes')
+    const response = await axios.get(`${baseUrl}/api/recipes`)
     recipes.value = response.data
   } catch (error) {
     console.error('❌ Erreur récupération recettes:', error)
@@ -101,9 +98,9 @@ async function fetchRecipes() {
 }
 onMounted(fetchRecipes)
 
-// Créer recette
+// ➕ Créer recette
 function handleCreate(newRecipe) {
-  axios.post('http://127.0.0.1:8000/api/recipes', newRecipe)
+  axios.post(`${baseUrl}/api/recipes`, newRecipe)
     .then(response => {
       alert('✅ Recette créée avec succès !')
       recipes.value.push(response.data.recipe)
@@ -115,9 +112,9 @@ function handleCreate(newRecipe) {
     })
 }
 
-// Modifier recette
+// ✏️ Modifier recette
 function handleUpdate(updatedRecipe) {
-  axios.put(`http://127.0.0.1:8000/api/recipes/${updatedRecipe.id}`, updatedRecipe)
+  axios.put(`${baseUrl}/api/recipes/${updatedRecipe.id}`, updatedRecipe)
     .then(response => {
       alert("✅ Recette modifiée !")
       const index = recipes.value.findIndex(r => r.id === updatedRecipe.id)
@@ -132,10 +129,10 @@ function handleUpdate(updatedRecipe) {
     })
 }
 
-// Supprimer recette
+// 🗑️ Supprimer recette
 function handleDelete(recipe) {
   if (!confirm(`🗑️ Supprimer la recette "${recipe.title}" ?`)) return
-  axios.delete(`http://127.0.0.1:8000/api/recipes/${recipe.id}`)
+  axios.delete(`${baseUrl}/api/recipes/${recipe.id}`)
     .then(() => {
       alert("✅ Recette supprimée !")
       recipes.value = recipes.value.filter(r => r.id !== recipe.id)
